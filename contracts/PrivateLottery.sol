@@ -2,7 +2,6 @@
 pragma solidity ^0.8.11;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 // Plonk verifier function (proof, public signals)
 interface IPlonkVerifier {
@@ -19,7 +18,6 @@ contract PrivateLottery is Ownable {
     // State variables
     IERC20 public airdrop_erc;
     uint public amount;
-    IERC721NFT public airdrop;
     IPlonkVerifier verifier;
     bytes32 public root;
     uint256[] commitments;
@@ -37,7 +35,7 @@ contract PrivateLottery is Ownable {
     uint256 constant SNARK_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
 
-    function deposit(bytes32 _commitment) external payable nonReentrant {
+    function butTickey(bytes32 _commitment) external payable nonReentrant {
         require(!commitments[_commitment], "The commitment has been submitted");
 
         uint32 insertedIndex = _insert(_commitment);
@@ -52,8 +50,6 @@ contract PrivateLottery is Ownable {
     // Verify proof, updated nullifier set, collect airdrop
     function collectAirdrop(uint256 commitment, bytes calldata proof, bytes32 nullifierHash) public {
         // Make sure commitment is in the eligibility set
-        require(getEligible(commitment), "Commitment is not in the eligibility set!");
-
         // Check against nullifier set (i.e. nullifier hash to false)
         require(uint256(nullifierHash) < SNARK_FIELD ,"Nullifier is not within the field!");
         require(!nullifierSpent[nullifierHash], "Airdrop already redeemed!");
